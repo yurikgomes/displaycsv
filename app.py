@@ -13,8 +13,16 @@ def display_file():
     if not file:
         return "No file"
 
-    # Processa o arquivo CSV
-    df = pd.read_csv(file)
+    # Tenta ler o arquivo com diferentes codificações
+    try:
+        df = pd.read_csv(file, delimiter=";")
+    except UnicodeDecodeError:
+        file.seek(0)  # Reseta o ponteiro do arquivo
+        try:
+            df = pd.read_csv(file, encoding='latin1', delimiter=";")
+        except UnicodeDecodeError:
+            file.seek(0)  # Reseta o ponteiro do arquivo
+            df = pd.read_csv(file, encoding='ISO-8859-1', delimiter=";")
 
     # Renderiza o template com os dados do arquivo CSV
     return render_template('display.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
